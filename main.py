@@ -45,6 +45,10 @@ class Snake:
         self.body = [Vector2(5, 10), Vector2(6, 10), Vector2(7, 10)]
         self.direction = Vector2(0, 0)
         self.new_block = False
+        self.north = False
+        self.south = False
+        self.east = False
+        self.west = False
 
     def draw_snake(self, colour):  # Draws the snake on screen
         for block in self.body:
@@ -63,6 +67,38 @@ class Snake:
             body_copy = self.body[:-1]
             body_copy.insert(0, body_copy[0] + self.direction)
             self.body = body_copy[:]
+
+    def move_north(self):
+        if not self.south:
+            self.direction = Vector2(0, -1)
+            self.north = True
+            self.south = False
+            self.east = False
+            self.west = False
+
+    def move_south(self):
+        if not self.north:
+            self.direction = Vector2(0, 1)
+            self.north = False
+            self.south = True
+            self.east = False
+            self.west = False
+
+    def move_east(self):
+        if not self.west:
+            self.direction = Vector2(1, 0)
+            self.north = False
+            self.south = False
+            self.east = True
+            self.west = False
+
+    def move_west(self):
+        if not self.east:
+            self.direction = Vector2(-1, 0)
+            self.north = False
+            self.south = False
+            self.east = False
+            self.west = True
 
     def add_block(self):  # Adds block to the current snake
         self.new_block = True
@@ -138,13 +174,13 @@ class Game:
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
-                        self.snake.direction = Vector2(0, -1)
+                        self.snake.move_north()
                     if event.key == pygame.K_DOWN:
-                        self.snake.direction = Vector2(0, 1)
+                        self.snake.move_south()
                     if event.key == pygame.K_LEFT:
-                        self.snake.direction = Vector2(-1, 0)
+                        self.snake.move_west()
                     if event.key == pygame.K_RIGHT:
-                        self.snake.direction = Vector2(1, 0)
+                        self.snake.move_east()
 
             self.draw_elements()
             self.scale_window()
