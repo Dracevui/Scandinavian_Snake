@@ -206,7 +206,7 @@ class Assets:  # The class that handles loading in game assets
         self.resume_surface = pygame.image.load("Graphics/resume_button.png").convert_alpha()
         self.pizza = pygame.image.load("Graphics/pizza_bubble.png").convert_alpha()
         self.start_spacebar = pygame.image.load("Graphics/start_spacebar.png").convert_alpha()
-        
+
         # Sound
         self.bgm = pygame.mixer.Sound("Sound/bgm.wav")
         self.crunch = pygame.mixer.Sound("Sound/crunch.wav")
@@ -243,6 +243,7 @@ class Game:
         # Game Variables
         self.running = False
         self.game_active = False
+        self.paused = False
         self.score = 0
         self.high_score = 0
 
@@ -305,6 +306,41 @@ class Game:
                 self.assets.crash.play()
                 self.game_over_screen()
 
+    def key_presses(self, event):  # Handles the relevant key presses to control the game
+        if event.key == pygame.K_UP:
+            self.snake.move_north()
+        if event.key == pygame.K_DOWN:
+            self.snake.move_south()
+        if event.key == pygame.K_LEFT:
+            self.snake.move_west()
+        if event.key == pygame.K_RIGHT:
+            self.snake.move_east()
+        if event.key == pygame.K_ESCAPE:
+            self.pause_game()
+
+    def pause_game(self):
+        self.paused = True
+        resume_rect = self.assets.resume_surface.get_rect(center=self.WINDOW.get_rect().center)
+        while self.paused:
+            self.draw_elements()
+            self.display_score()
+            self.DUMMY_WINDOW.blit(self.assets.resume_surface, resume_rect)
+
+            mx, my = pygame.mouse.get_pos()
+
+            for event in pygame.event.get():
+                click = True if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 else False
+
+                if resume_rect.collidepoint((mx, my)) and click or \
+                        event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    self.paused = False
+
+                if event.type == pygame.QUIT:
+                    game_quit()
+
+            self.scale_window()
+            self.CLOCK.tick(self.FPS)
+
     def game_clear(self):
         self.snake.reset()
         self.score = 0
@@ -359,14 +395,7 @@ class Game:
                     self.update()
 
                 if event.type == pygame.KEYDOWN and self.game_active:
-                    if event.key == pygame.K_UP:
-                        self.snake.move_north()
-                    if event.key == pygame.K_DOWN:
-                        self.snake.move_south()
-                    if event.key == pygame.K_LEFT:
-                        self.snake.move_west()
-                    if event.key == pygame.K_RIGHT:
-                        self.snake.move_east()
+                    self.key_presses(event)
 
             self.draw_elements()
             self.display_score()
