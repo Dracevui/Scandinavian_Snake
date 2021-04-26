@@ -33,7 +33,7 @@ class Fruit:
         fruit_rect = pygame.Rect(self.pos.x * cell_size, self.pos.y * cell_size, cell_size, cell_size)
         pygame.draw.rect(self.parent_screen, colour, fruit_rect)
 
-    def randomise(self):
+    def randomise(self):  # Randomises the position of the fruit after being eaten
         self.x = random.randint(0, CELL_NUMBER - 1)
         self.y = random.randint(0, CELL_NUMBER - 1)
         self.pos = Vector2(self.x, self.y)
@@ -42,18 +42,18 @@ class Fruit:
 class Snake:
     def __init__(self, parent_screen):
         self.parent_screen = parent_screen
-        self.body = [Vector2(5, 10), Vector2(6, 10), Vector2(7, 10), ]
+        self.body = [Vector2(5, 10), Vector2(6, 10), Vector2(7, 10)]
         self.direction = Vector2(0, 0)
         self.new_block = False
 
-    def draw_snake(self, colour):
+    def draw_snake(self, colour):  # Draws the snake on screen
         for block in self.body:
             x_pos = block.x * CELL_SIZE
             y_pos = block.y * CELL_SIZE
             block_rect = pygame.Rect(x_pos, y_pos, CELL_SIZE, CELL_SIZE)
             pygame.draw.rect(self.parent_screen, colour, block_rect)
 
-    def move_snake(self):
+    def move_snake(self):  # Moves the snake according to user input
         if self.new_block:
             body_copy = self.body[:]
             body_copy.insert(0, body_copy[0] + self.direction)
@@ -64,8 +64,18 @@ class Snake:
             body_copy.insert(0, body_copy[0] + self.direction)
             self.body = body_copy[:]
 
-    def add_block(self):
+    def add_block(self):  # Adds block to the current snake
         self.new_block = True
+
+    def walk_through_walls(self):  # Makes the snake come out the other side when they hit a wall
+        if self.body[0].x >= CELL_NUMBER - 1:
+            self.body[0].x -= CELL_NUMBER
+        if self.body[0].x < 0:
+            self.body[0].x += CELL_NUMBER
+        if self.body[0].y >= CELL_NUMBER - 1:
+            self.body[0].y -= CELL_NUMBER
+        if self.body[0].y < 0:
+            self.body[0].y += CELL_NUMBER
 
 
 class Game:
@@ -101,15 +111,16 @@ class Game:
         self.WINDOW.blit(frame, frame.get_rect())
         pygame.display.flip()
 
-    def update(self):
+    def update(self):  # Updates the screen when something happens
         self.snake.move_snake()
         self.check_collision()
+        self.snake.walk_through_walls()
 
-    def draw_elements(self):
+    def draw_elements(self):  # Draws the specified elements onscreen
         self.fruit.draw_fruit(CELL_SIZE, self.RED)
         self.snake.draw_snake(self.GREEN)
 
-    def check_collision(self):
+    def check_collision(self):  # Checks to see if the head of the snake has collided with the fruit
         if self.fruit.pos == self.snake.body[0]:
             self.fruit.randomise()
             self.snake.add_block()
