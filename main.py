@@ -22,6 +22,12 @@ def game_quit():  # Quits the game when called upon
     sys.exit()
 
 
+def update_score(score, hi_score):  # Replaces the high score if the current score surpasses the current one
+    if score > hi_score:
+        hi_score = score
+    return hi_score
+
+
 class Fruit:
     def __init__(self, parent_screen, pizza):
         self.pizza = pizza
@@ -217,6 +223,7 @@ class Game:
         self.CLOCK = pygame.time.Clock()
         self.FPS = 60
         self.SCREEN_UPDATE = pygame.USEREVENT
+        self.FONT = pygame.font.SysFont('Impact', 50)
 
         # User Event Timers
         pygame.time.set_timer(self.SCREEN_UPDATE, 100)
@@ -224,16 +231,28 @@ class Game:
         # Colours
         self.RED = (255, 0, 0)
         self.GREEN = (83, 255, 121)
+        self.WHITE = (255, 255, 255)
 
         # Game Variables
         self.running = True
         self.game_active = True
+        self.score = 0
+        self.high_score = 0
 
         # Class Imports
         self.assets = Assets()
         self.fruit = Fruit(self.DUMMY_WINDOW, self.assets.pizza)
         self.snake = Snake(self.DUMMY_WINDOW)
         pygame.display.set_icon(self.assets.icon)
+
+    def display_score(self):
+        score = self.FONT.render(f"Score: {self.score}", True, self.WHITE)
+        hi_score = self.FONT.render(f"High Score: {self.high_score}", True, self.WHITE)
+        self.high_score = update_score(self.score, self.high_score)
+
+        self.DUMMY_WINDOW.blit(score, (800, 935))
+        if not self.game_active:
+            self.DUMMY_WINDOW.blit(hi_score, (365, 750))
 
     def scale_window(self):  # Scales the game window and assets to fit the user's monitor dimensions
         frame = pygame.transform.scale(self.DUMMY_WINDOW, self.SCREEN_DIMENSIONS)
@@ -255,6 +274,7 @@ class Game:
             self.assets.crunch.play()
             self.fruit.randomise()
             self.snake.add_block()
+            self.score += 1
 
     def check_fail(self):  # Checks to see if the snake hits itself
         for block in self.snake.body[1:]:
@@ -276,6 +296,7 @@ class Game:
             self.DUMMY_WINDOW.blit(self.assets.background, (0, 0))
             self.DUMMY_WINDOW.blit(self.assets.game_over, (268, 268))
             self.DUMMY_WINDOW.blit(self.assets.press_spacebar_surface, (260, 21))
+            self.display_score()
             self.scale_window()
 
     def main(self):  # The main game loop
@@ -301,6 +322,7 @@ class Game:
                         self.snake.move_east()
 
             self.draw_elements()
+            self.display_score()
             self.scale_window()
             self.CLOCK.tick(self.FPS)
 
