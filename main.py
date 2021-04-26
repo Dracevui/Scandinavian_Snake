@@ -38,6 +38,7 @@ class Snake:
     def __init__(self, parent_screen):
         self.parent_screen = parent_screen
         self.body = [Vector2(5, 10), Vector2(6, 10), Vector2(7, 10), ]
+        self.direction = Vector2(0, 0)
 
     def draw_snake(self, colour):
         for block in self.body:
@@ -45,6 +46,11 @@ class Snake:
             y_pos = block.y * CELL_SIZE
             block_rect = pygame.Rect(x_pos, y_pos, CELL_SIZE, CELL_SIZE)
             pygame.draw.rect(self.parent_screen, colour, block_rect)
+
+    def move_snake(self):
+        body_copy = self.body[:-1]
+        body_copy.insert(0, body_copy[0] + self.direction)
+        self.body = body_copy[:]
 
 
 class Game:
@@ -59,6 +65,10 @@ class Game:
         self.WINDOW = pygame.display.set_mode(self.SCREEN_DIMENSIONS)
         self.CLOCK = pygame.time.Clock()
         self.FPS = 60
+        self.SCREEN_UPDATE = pygame.USEREVENT
+
+        # User Event Timers
+        pygame.time.set_timer(self.SCREEN_UPDATE, 150)
 
         # Colours
         self.RED = (255, 0, 0)
@@ -83,6 +93,19 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     game_quit()
+
+                if event.type == self.SCREEN_UPDATE:
+                    self.snake.move_snake()
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        self.snake.direction = Vector2(0, -1)
+                    if event.key == pygame.K_DOWN:
+                        self.snake.direction = Vector2(0, 1)
+                    if event.key == pygame.K_LEFT:
+                        self.snake.direction = Vector2(-1, 0)
+                    if event.key == pygame.K_RIGHT:
+                        self.snake.direction = Vector2(1, 0)
 
             self.fruit.draw_fruit(CELL_SIZE, self.RED)
             self.snake.draw_snake(self.GREEN)
