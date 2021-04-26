@@ -5,7 +5,7 @@ import random
 from pygame.math import Vector2
 
 CELL_SIZE = 40
-CELL_NUMBER = 20
+CELL_NUMBER = 25
 
 
 def screen_dimensions(width, height):  # Lets me easily change the dimensions of the game window
@@ -23,7 +23,8 @@ def game_quit():  # Quits the game when called upon
 
 
 class Fruit:
-    def __init__(self, parent_screen):
+    def __init__(self, parent_screen, fruit):
+        self.fruit = fruit
         self.parent_screen = parent_screen
         self.x = random.randint(0, CELL_NUMBER - 1)
         self.y = random.randint(0, CELL_NUMBER - 1)
@@ -31,7 +32,8 @@ class Fruit:
 
     def draw_fruit(self, cell_size, colour):  # Draws fruit onscreen
         fruit_rect = pygame.Rect(self.pos.x * cell_size, self.pos.y * cell_size, cell_size, cell_size)
-        pygame.draw.rect(self.parent_screen, colour, fruit_rect)
+        self.parent_screen.blit(self.fruit, fruit_rect)
+        # pygame.draw.rect(self.parent_screen, colour, fruit_rect)
 
     def randomise(self):  # Randomises the position of the fruit after being eaten
         self.x = random.randint(0, CELL_NUMBER - 1)
@@ -116,16 +118,22 @@ class Snake:
 
 class Assets:  # The class that handles loading in game assets
     def __init__(self):
+        # Graphics
         self.background = pygame.transform.scale(
             (pygame.image.load("Graphics/water_background.png")), (CELL_SIZE * CELL_NUMBER, CELL_SIZE * CELL_NUMBER)
         )
-        self.game_over = pygame.image.load("Graphics/game_over.png")
-        self.press_spacebar_surface = pygame.image.load("Graphics/press_spacebar2.png")
-        self.icon = pygame.image.load("Graphics/icon.png")
+        self.game_over = pygame.image.load("Graphics/game_over.png").convert_alpha()
+        self.press_spacebar_surface = pygame.image.load("Graphics/press_spacebar2.png").convert_alpha()
+        self.icon = pygame.image.load("Graphics/icon.png").convert_alpha()
+        self.resume_surface = pygame.image.load("Graphics/resume_button.png").convert_alpha()
+        self.pizza = pygame.image.load("Graphics/pizza_bubble.png").convert_alpha()
+        
+        # Sound
         self.bgm = pygame.mixer.Sound("Sound/bgm.wav")
-        self.resume_surface = pygame.image.load("Graphics/resume_button.png")
+        self.crunch = pygame.mixer.Sound("Sound/crunch.wav")
+        self.crash = pygame.mixer.Sound("Sound/crash.mp3")
 
-    def play_bgm(self):
+    def play_bgm(self):  # Plays the background music
         self.bgm.play(-1)
 
 
@@ -144,7 +152,7 @@ class Game:
         self.SCREEN_UPDATE = pygame.USEREVENT
 
         # User Event Timers
-        pygame.time.set_timer(self.SCREEN_UPDATE, 150)
+        pygame.time.set_timer(self.SCREEN_UPDATE, 100)
 
         # Colours
         self.RED = (255, 0, 0)
@@ -155,9 +163,10 @@ class Game:
         self.game_active = True
 
         # Class Imports
-        self.fruit = Fruit(self.DUMMY_WINDOW)
-        self.snake = Snake(self.DUMMY_WINDOW)
         self.assets = Assets()
+        self.fruit = Fruit(self.DUMMY_WINDOW, self.assets.pizza)
+        self.snake = Snake(self.DUMMY_WINDOW)
+        pygame.display.set_icon(self.assets.icon)
 
     def scale_window(self):  # Scales the game window and assets to fit the user's monitor dimensions
         frame = pygame.transform.scale(self.DUMMY_WINDOW, self.SCREEN_DIMENSIONS)
@@ -176,15 +185,17 @@ class Game:
 
     def check_collision(self):  # Checks to see if the head of the snake has collided with the fruit
         if self.fruit.pos == self.snake.body[0]:
+            self.assets.crunch.play()
             self.fruit.randomise()
             self.snake.add_block()
 
-    def check_fail(self):
+    def check_fail(self):  # Checks to see if the snake hits itself
         for block in self.snake.body[1:]:
             if block == self.snake.body[0]:
+                self.assets.crash.play()
                 self.game_over_screen()
 
-    def game_over_screen(self):
+    def game_over_screen(self):  # Draws the game over screen
         self.game_active = False
         while not self.game_active:
             for event in pygame.event.get():
@@ -196,8 +207,8 @@ class Game:
                     self.game_active = True
 
             self.DUMMY_WINDOW.blit(self.assets.background, (0, 0))
-            self.DUMMY_WINDOW.blit(self.assets.game_over, (168, 168))
-            self.DUMMY_WINDOW.blit(self.assets.press_spacebar_surface, (160, 6))
+            self.DUMMY_WINDOW.blit(self.assets.game_over, (268, 268))
+            self.DUMMY_WINDOW.blit(self.assets.press_spacebar_surface, (260, 21))
             self.scale_window()
 
     def main(self):  # The main game loop
