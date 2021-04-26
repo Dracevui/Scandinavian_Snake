@@ -254,7 +254,7 @@ class Game:
         self.snake = Snake(self.DUMMY_WINDOW)
         pygame.display.set_icon(self.assets.icon)
 
-    def display_score(self):
+    def display_score(self):  # Displays the current score and high score onscreen
         self.high_score = update_score(self.score, self.high_score)
         hi_score = self.SCORE_FONT.render(f"High Score: {self.high_score}", True, self.WHITE)
         score_surface = self.SCORE_FONT.render(f"Eaten: {self.score}", True, self.WHITE)
@@ -319,7 +319,7 @@ class Game:
         if event.key == pygame.K_ESCAPE:
             self.pause_game()
 
-    def pause_game(self):
+    def pause_game(self):  # Pauses the game
         self.paused = True
         resume_rect = self.assets.resume_surface.get_rect(center=self.WINDOW.get_rect().center)
         while self.paused:
@@ -342,7 +342,7 @@ class Game:
             self.scale_window()
             self.CLOCK.tick(self.FPS)
 
-    def game_clear(self):
+    def game_clear(self):  # Clears the relevant game variables to start a new session
         self.snake.reset()
         self.score = 0
 
