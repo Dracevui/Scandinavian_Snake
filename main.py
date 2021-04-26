@@ -49,14 +49,15 @@ class Fruit:
 class Snake:
     def __init__(self, parent_screen):
         self.parent_screen = parent_screen
-        self.body = [Vector2(5, 10), Vector2(4, 10), Vector2(3, 10)]
+        self.start_position = [Vector2(5, 2), Vector2(4, 2), Vector2(3, 2)]
+        self.body = self.start_position
         self.direction = Vector2(1, 0)
         self.new_block = False
 
         # Directions
         self.north = False
         self.south = False
-        self.east = False
+        self.east = True
         self.west = False
 
         # Body Assets
@@ -188,6 +189,10 @@ class Snake:
         if self.body[0].y < 0:
             self.body[0].y += CELL_NUMBER
 
+    def reset(self):
+        self.body = self.start_position
+        self.direction = Vector2(1, 0)
+
 
 class Assets:  # The class that handles loading in game assets
     def __init__(self):
@@ -200,6 +205,7 @@ class Assets:  # The class that handles loading in game assets
         self.icon = pygame.image.load("Graphics/icon.png").convert_alpha()
         self.resume_surface = pygame.image.load("Graphics/resume_button.png").convert_alpha()
         self.pizza = pygame.image.load("Graphics/pizza_bubble.png").convert_alpha()
+        self.start_spacebar = pygame.image.load("Graphics/start_spacebar.png").convert_alpha()
         
         # Sound
         self.bgm = pygame.mixer.Sound("Sound/bgm.wav")
@@ -235,8 +241,8 @@ class Game:
         self.WHITE = (255, 255, 255)
 
         # Game Variables
-        self.running = True
-        self.game_active = True
+        self.running = False
+        self.game_active = False
         self.score = 0
         self.high_score = 0
 
@@ -247,22 +253,23 @@ class Game:
         pygame.display.set_icon(self.assets.icon)
 
     def display_score(self):
-        score_surface = self.SCORE_FONT.render(f"Eaten: {self.score}", True, self.WHITE)
-        hi_score = self.SCORE_FONT.render(f"High Score: {self.high_score}", True, self.WHITE)
         self.high_score = update_score(self.score, self.high_score)
+        hi_score = self.SCORE_FONT.render(f"High Score: {self.high_score}", True, self.WHITE)
+        score_surface = self.SCORE_FONT.render(f"Eaten: {self.score}", True, self.WHITE)
+
         score_x = int(CELL_SIZE * CELL_NUMBER - 100)
         score_y = int(CELL_SIZE * CELL_NUMBER - 40)
         score_rect = score_surface.get_rect(center=(score_x, score_y))
+
         pizza_rect = self.assets.pizza.get_rect(midright=(score_rect.left - 5, score_rect.centery))
-        # bg_rect = pygame.Rect(750, 940, 250, 50)
+
         bg_rect = pygame.Rect(
             pizza_rect.left - 6, pizza_rect.top - 16, pizza_rect.width + score_rect.width + 18, pizza_rect.height + 24)
 
-        # self.DUMMY_WINDOW.blit(score_surface, (800, 935))
         self.DUMMY_WINDOW.blit(score_surface, score_rect)
-        # self.DUMMY_WINDOW.blit(self.assets.pizza, (750, 940))
         self.DUMMY_WINDOW.blit(self.assets.pizza, (pizza_rect.x, pizza_rect.y - 5))
         pygame.draw.rect(self.DUMMY_WINDOW, (124, 212, 255), bg_rect, 3)
+
         if not self.game_active:
             self.DUMMY_WINDOW.blit(hi_score, (365, 750))
 
@@ -283,9 +290,9 @@ class Game:
 
     def check_collision(self):  # Checks to see if the head of the snake has collided with the fruit
         if self.fruit.pos == self.snake.body[0]:
-            self.assets.crunch.play()
             self.fruit.randomise()
             self.snake.add_block()
+            self.assets.crunch.play()
             self.score += 1
 
         for block in self.snake.body[1:]:
@@ -299,17 +306,19 @@ class Game:
                 self.game_over_screen()
 
     def game_clear(self):
-        self.snake.body.clear()
+        self.snake.reset()
+        self.score = 0
 
     def game_over_screen(self):  # Draws the game over screen
         self.game_active = False
-        while not self.game_active:
+        while not self.game_active and self.running:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE or event.type == pygame.QUIT:
                     self.running = False
                     game_quit()
 
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                    self.game_clear()
                     self.game_active = True
 
             self.DUMMY_WINDOW.blit(self.assets.background, (0, 0))
@@ -318,8 +327,27 @@ class Game:
             self.display_score()
             self.scale_window()
 
+    def start_screen(self):  # Draws the start screen
+        while not self.running:
+            self.DUMMY_WINDOW.fill(self.WHITE)
+            for events in pygame.event.get():
+                if events.type == pygame.KEYDOWN and events.key == pygame.K_SPACE:
+                    self.running = True
+                    self.game_active = True
+                if events.type == pygame.QUIT:
+                    game_quit()
+
+            self.DUMMY_WINDOW.blit(self.assets.background, (0, 0))
+            self.draw_elements()
+            self.DUMMY_WINDOW.blit(self.assets.start_spacebar, self.assets.start_spacebar.get_rect(
+                center=self.WINDOW.get_rect().center))
+            self.scale_window()
+
     def main(self):  # The main game loop
         self.assets.play_bgm()
+
+        self.start_screen()
+
         while self.running:
             self.DUMMY_WINDOW.blit(self.assets.background, (0, 0))
 
@@ -330,7 +358,7 @@ class Game:
                 if event.type == self.SCREEN_UPDATE:
                     self.update()
 
-                if event.type == pygame.KEYDOWN:
+                if event.type == pygame.KEYDOWN and self.game_active:
                     if event.key == pygame.K_UP:
                         self.snake.move_north()
                     if event.key == pygame.K_DOWN:
