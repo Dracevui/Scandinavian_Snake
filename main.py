@@ -272,7 +272,7 @@ class Game:
         pygame.draw.rect(self.DUMMY_WINDOW, (124, 212, 255), bg_rect, 3)
 
         if not self.game_active:
-            self.DUMMY_WINDOW.blit(hi_score, (365, 750))
+            self.DUMMY_WINDOW.blit(hi_score, (365, 800))
 
     def scale_window(self):  # Scales the game window and assets to fit the user's monitor dimensions
         frame = pygame.transform.scale(self.DUMMY_WINDOW, self.SCREEN_DIMENSIONS)
@@ -375,8 +375,7 @@ class Game:
 
             self.DUMMY_WINDOW.blit(self.assets.background, (0, 0))
             self.draw_elements()
-            self.DUMMY_WINDOW.blit(self.assets.start_spacebar, self.assets.start_spacebar.get_rect(
-                center=self.WINDOW.get_rect().center))
+            self.DUMMY_WINDOW.blit(self.assets.start_spacebar, (163, 315))
             self.scale_window()
 
     def main(self):  # The main game loop
