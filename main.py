@@ -206,11 +206,12 @@ class Assets:  # The class that handles loading in game assets
         self.resume_surface = pygame.image.load("Graphics/resume_button.png").convert_alpha()
         self.pizza = pygame.image.load("Graphics/pizza_bubble.png").convert_alpha()
         self.start_spacebar = pygame.image.load("Graphics/start_spacebar.png").convert_alpha()
+        self.start_rect = self.start_spacebar.get_rect(center=(500, 500))
 
         # Sound
         self.bgm = pygame.mixer.Sound("Sound/bgm.wav")
         self.crunch = pygame.mixer.Sound("Sound/crunch.wav")
-        self.crash = pygame.mixer.Sound("Sound/crash.mp3")
+        self.crash = pygame.mixer.Sound("Sound/crash.wav")
 
     def play_bgm(self):  # Plays the background music
         self.bgm.play(-1)
