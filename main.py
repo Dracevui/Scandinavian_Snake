@@ -23,17 +23,16 @@ def game_quit():  # Quits the game when called upon
 
 
 class Fruit:
-    def __init__(self, parent_screen, fruit):
-        self.fruit = fruit
+    def __init__(self, parent_screen, pizza):
+        self.pizza = pizza
         self.parent_screen = parent_screen
         self.x = random.randint(0, CELL_NUMBER - 1)
         self.y = random.randint(0, CELL_NUMBER - 1)
         self.pos = Vector2(self.x, self.y)
 
-    def draw_fruit(self, cell_size, colour):  # Draws fruit onscreen
+    def draw_fruit(self, cell_size):  # Draws fruit onscreen
         fruit_rect = pygame.Rect(self.pos.x * cell_size, self.pos.y * cell_size, cell_size, cell_size)
-        self.parent_screen.blit(self.fruit, fruit_rect)
-        # pygame.draw.rect(self.parent_screen, colour, fruit_rect)
+        self.parent_screen.blit(self.pizza, fruit_rect)
 
     def randomise(self):  # Randomises the position of the fruit after being eaten
         self.x = random.randint(0, CELL_NUMBER - 1)
@@ -47,17 +46,85 @@ class Snake:
         self.body = [Vector2(5, 10), Vector2(4, 10)]
         self.direction = Vector2(1, 0)
         self.new_block = False
+
+        # Directions
         self.north = False
         self.south = False
         self.east = False
         self.west = False
 
-    def draw_snake(self, colour):  # Draws the snake on screen
-        for block in self.body:
+        # Body Assets
+        self.head_up = pygame.image.load('Graphics/head_up.png').convert_alpha()
+        self.head_down = pygame.image.load('Graphics/head_down.png').convert_alpha()
+        self.head_right = pygame.image.load('Graphics/head_right.png').convert_alpha()
+        self.head_left = pygame.image.load('Graphics/head_left.png').convert_alpha()
+
+        self.tail_up = pygame.image.load('Graphics/tail_up.png').convert_alpha()
+        self.tail_down = pygame.image.load('Graphics/tail_down.png').convert_alpha()
+        self.tail_right = pygame.image.load('Graphics/tail_right.png').convert_alpha()
+        self.tail_left = pygame.image.load('Graphics/tail_left.png').convert_alpha()
+
+        self.body_vertical = pygame.image.load('Graphics/body_vertical.png').convert_alpha()
+        self.body_horizontal = pygame.image.load('Graphics/body_horizontal.png').convert_alpha()
+
+        self.body_tr = pygame.image.load('Graphics/body_tr.png').convert_alpha()
+        self.body_tl = pygame.image.load('Graphics/body_tl.png').convert_alpha()
+        self.body_br = pygame.image.load('Graphics/body_br.png').convert_alpha()
+        self.body_bl = pygame.image.load('Graphics/body_bl.png').convert_alpha()
+
+    def draw_snake(self):  # Draws the snake on screen
+        for index, block in enumerate(self.body):  # Gives an index number to the block we are looking at
             x_pos = block.x * CELL_SIZE
             y_pos = block.y * CELL_SIZE
             block_rect = pygame.Rect(x_pos, y_pos, CELL_SIZE, CELL_SIZE)
-            pygame.draw.rect(self.parent_screen, colour, block_rect)
+
+            if index == 0:  # Refers to the first block ie the head
+                self.update_head_graphics(block_rect)
+
+            elif index == len(self.body) - 1:  # Refers to the last block ie the tail
+                self.update_tail_graphics(block_rect)
+
+            else:
+                previous_block = self.body[index + 1] - block
+                next_block = self.body[index - 1] - block
+                if previous_block.x == next_block.x:  # Draws vertical body
+                    self.parent_screen.blit(self.body_vertical, block_rect)
+                if previous_block.y == next_block.y:  # Draws horizontal body
+                    self.parent_screen.blit(self.body_horizontal, block_rect)
+                else:
+                    self.update_corner_graphics(previous_block, next_block, block_rect)
+                
+    def update_head_graphics(self, rect):  # Updates the head graphic depending on the direction you're facing
+        head_relation = self.body[1] - self.body[0]
+        if head_relation == Vector2(0, -1):
+            self.parent_screen.blit(self.head_down, rect)
+        if head_relation == Vector2(0, 1):
+            self.parent_screen.blit(self.head_up, rect)
+        if head_relation == Vector2(1, 0):
+            self.parent_screen.blit(self.head_left, rect)
+        if head_relation == Vector2(-1, 0):
+            self.parent_screen.blit(self.head_right, rect)
+
+    def update_corner_graphics(self, previous_block, next_block, rect):  # Updates the corner graphics when turning
+        if previous_block.x == -1 and next_block.y == -1 or previous_block.y == -1 and next_block.x == -1:
+            self.parent_screen.blit(self.body_tl, rect)
+        if previous_block.x == -1 and next_block.y == 1 or previous_block.y == 1 and next_block.x == -1:
+            self.parent_screen.blit(self.body_bl, rect)
+        if previous_block.x == 1 and next_block.y == -1 or previous_block.y == -1 and next_block.x == 1:
+            self.parent_screen.blit(self.body_tr, rect)
+        if previous_block.x == 1 and next_block.y == 1 or previous_block.y == 1 and next_block.x == 1:
+            self.parent_screen.blit(self.body_br, rect)
+
+    def update_tail_graphics(self, rect):  # Updates the tail graphic depending on the direction you're facing
+        tail_relation = self.body[-2] - self.body[-1]
+        if tail_relation == Vector2(0, -1):
+            self.parent_screen.blit(self.tail_down, rect)
+        if tail_relation == Vector2(0, 1):
+            self.parent_screen.blit(self.tail_up, rect)
+        if tail_relation == Vector2(1, 0):
+            self.parent_screen.blit(self.tail_left, rect)
+        if tail_relation == Vector2(-1, 0):
+            self.parent_screen.blit(self.tail_right, rect)
 
     def move_snake(self):  # Moves the snake according to user input
         if self.new_block:
@@ -180,8 +247,8 @@ class Game:
         self.check_fail()
 
     def draw_elements(self):  # Draws the specified elements onscreen
-        self.fruit.draw_fruit(CELL_SIZE, self.RED)
-        self.snake.draw_snake(self.GREEN)
+        self.fruit.draw_fruit(CELL_SIZE)
+        self.snake.draw_snake()
 
     def check_collision(self):  # Checks to see if the head of the snake has collided with the fruit
         if self.fruit.pos == self.snake.body[0]:
