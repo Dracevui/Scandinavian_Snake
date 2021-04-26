@@ -49,7 +49,7 @@ class Fruit:
 class Snake:
     def __init__(self, parent_screen):
         self.parent_screen = parent_screen
-        self.body = [Vector2(5, 10), Vector2(4, 10)]
+        self.body = [Vector2(5, 10), Vector2(4, 10), Vector2(3, 10)]
         self.direction = Vector2(1, 0)
         self.new_block = False
 
@@ -224,6 +224,7 @@ class Game:
         self.FPS = 60
         self.SCREEN_UPDATE = pygame.USEREVENT
         self.FONT = pygame.font.SysFont('Impact', 50)
+        self.SCORE_FONT = pygame.font.Font("Font/white_shark_cre.ttf", 50)
 
         # User Event Timers
         pygame.time.set_timer(self.SCREEN_UPDATE, 100)
@@ -246,11 +247,22 @@ class Game:
         pygame.display.set_icon(self.assets.icon)
 
     def display_score(self):
-        score = self.FONT.render(f"Score: {self.score}", True, self.WHITE)
-        hi_score = self.FONT.render(f"High Score: {self.high_score}", True, self.WHITE)
+        score_surface = self.SCORE_FONT.render(f"Eaten: {self.score}", True, self.WHITE)
+        hi_score = self.SCORE_FONT.render(f"High Score: {self.high_score}", True, self.WHITE)
         self.high_score = update_score(self.score, self.high_score)
+        score_x = int(CELL_SIZE * CELL_NUMBER - 100)
+        score_y = int(CELL_SIZE * CELL_NUMBER - 40)
+        score_rect = score_surface.get_rect(center=(score_x, score_y))
+        pizza_rect = self.assets.pizza.get_rect(midright=(score_rect.left - 5, score_rect.centery))
+        # bg_rect = pygame.Rect(750, 940, 250, 50)
+        bg_rect = pygame.Rect(
+            pizza_rect.left - 6, pizza_rect.top - 16, pizza_rect.width + score_rect.width + 18, pizza_rect.height + 24)
 
-        self.DUMMY_WINDOW.blit(score, (800, 935))
+        # self.DUMMY_WINDOW.blit(score_surface, (800, 935))
+        self.DUMMY_WINDOW.blit(score_surface, score_rect)
+        # self.DUMMY_WINDOW.blit(self.assets.pizza, (750, 940))
+        self.DUMMY_WINDOW.blit(self.assets.pizza, (pizza_rect.x, pizza_rect.y - 5))
+        pygame.draw.rect(self.DUMMY_WINDOW, (124, 212, 255), bg_rect, 3)
         if not self.game_active:
             self.DUMMY_WINDOW.blit(hi_score, (365, 750))
 
@@ -276,11 +288,18 @@ class Game:
             self.snake.add_block()
             self.score += 1
 
+        for block in self.snake.body[1:]:
+            if block == self.fruit.pos:
+                self.fruit.randomise()
+
     def check_fail(self):  # Checks to see if the snake hits itself
         for block in self.snake.body[1:]:
             if block == self.snake.body[0]:
                 self.assets.crash.play()
                 self.game_over_screen()
+
+    def game_clear(self):
+        self.snake.body.clear()
 
     def game_over_screen(self):  # Draws the game over screen
         self.game_active = False
