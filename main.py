@@ -330,34 +330,25 @@ class Game:
             speech = self.SCORE_FONT.render(f"Current Speed: {text}", True, colour)
             return speech
 
-        difficulty_rect = self.assets.options_screen.get_rect(center=self.WINDOW.get_rect().center)
-
         easy_text = speed_text(self.WHITE, "Easy")
-        easy_text_rect = easy_text.get_rect(center=(self.WINDOW.get_rect().centerx, 780))
-
         medium_text = speed_text(self.YELLOW, "Medium")
-        medium_text_rect = medium_text.get_rect(center=(self.WINDOW.get_rect().centerx, 780))
-
         hard_text = speed_text(self.FADED_RED, "Hard")
-        hard_text_rect = hard_text.get_rect(center=(self.WINDOW.get_rect().centerx, 780))
-
         twenty_text = speed_text(self.RED, "2020")
-        twenty_text_rect = twenty_text.get_rect(center=(self.WINDOW.get_rect().centerx, 780))
 
         self.DUMMY_WINDOW.blit(self.assets.background, (0, 0))
-        self.DUMMY_WINDOW.blit(self.assets.options_screen, difficulty_rect)
+        self.DUMMY_WINDOW.blit(self.assets.options_screen, (313, 254))
 
         if self.game_speed == 150:
-            self.DUMMY_WINDOW.blit(easy_text, easy_text_rect)
+            self.DUMMY_WINDOW.blit(easy_text, (304, 748))
 
         if self.game_speed == 100:
-            self.DUMMY_WINDOW.blit(medium_text, medium_text_rect)
+            self.DUMMY_WINDOW.blit(medium_text, (305, 748))
 
         if self.game_speed == 50:
-            self.DUMMY_WINDOW.blit(hard_text, hard_text_rect)
+            self.DUMMY_WINDOW.blit(hard_text, (305, 748))
 
         if self.game_speed == 10:
-            self.DUMMY_WINDOW.blit(twenty_text, twenty_text_rect)
+            self.DUMMY_WINDOW.blit(twenty_text, (309, 748))
 
     def difficulty_selection_settings(self):
         self.selection_state = True
@@ -427,8 +418,8 @@ class Game:
         while self.paused:
             self.draw_elements()
             self.display_score()
-            self.DUMMY_WINDOW.blit(self.assets.resume_surface, resume_rect)
-            self.DUMMY_WINDOW.blit(self.assets.button_options, options_rect)
+            self.DUMMY_WINDOW.blit(self.assets.resume_surface, (294, 430))
+            self.DUMMY_WINDOW.blit(self.assets.button_options, (800, 0))
 
             mx, my = pygame.mouse.get_pos()
 
