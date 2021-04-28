@@ -207,6 +207,8 @@ class Assets:  # The class that handles loading in game assets
         self.pizza = pygame.image.load("Graphics/pizza_bubble.png").convert_alpha()
         self.start_spacebar = pygame.image.load("Graphics/start_spacebar.png").convert_alpha()
         self.start_rect = self.start_spacebar.get_rect(center=(500, 500))
+        self.button_options = pygame.image.load("Graphics/button_options.png").convert_alpha()
+        self.options_screen = pygame.image.load("Graphics/difficulty.png").convert_alpha()
 
         # Sound
         self.bgm = pygame.mixer.Sound("Sound/bgm.wav")
@@ -233,20 +235,24 @@ class Game:
         self.FONT = pygame.font.SysFont('Impact', 50)
         self.SCORE_FONT = pygame.font.Font("Font/white_shark_cre.ttf", 50)
 
-        # User Event Timers
-        pygame.time.set_timer(self.SCREEN_UPDATE, 100)
-
         # Colours
-        self.RED = (255, 0, 0)
+        self.FADED_RED = (255, 120, 127)
+        self.RED = (219, 10, 0)
+        self.YELLOW = (255, 241, 137)
         self.GREEN = (83, 255, 121)
-        self.WHITE = (255, 255, 255)
+        self.WHITE = (230, 234, 255)
 
         # Game Variables
         self.running = False
         self.game_active = False
         self.paused = False
+        self.selection_state = False
         self.score = 0
         self.high_score = 0
+        self.game_speed = 100
+
+        # User Event Timers
+        pygame.time.set_timer(self.SCREEN_UPDATE, self.game_speed)
 
         # Class Imports
         self.assets = Assets()
@@ -319,13 +325,110 @@ class Game:
         if event.key == pygame.K_ESCAPE:
             self.pause_game()
 
+    def difficulty_selection_screen(self):
+        def speed_text(colour, text=""):
+            speech = self.SCORE_FONT.render(f"Current Speed: {text}", True, colour)
+            return speech
+
+        difficulty_rect = self.assets.options_screen.get_rect(center=self.WINDOW.get_rect().center)
+
+        easy_text = speed_text(self.WHITE, "Easy")
+        easy_text_rect = easy_text.get_rect(center=(self.WINDOW.get_rect().centerx, 780))
+
+        medium_text = speed_text(self.YELLOW, "Medium")
+        medium_text_rect = medium_text.get_rect(center=(self.WINDOW.get_rect().centerx, 780))
+
+        hard_text = speed_text(self.FADED_RED, "Hard")
+        hard_text_rect = hard_text.get_rect(center=(self.WINDOW.get_rect().centerx, 780))
+
+        twenty_text = speed_text(self.RED, "2020")
+        twenty_text_rect = twenty_text.get_rect(center=(self.WINDOW.get_rect().centerx, 780))
+
+        self.DUMMY_WINDOW.blit(self.assets.background, (0, 0))
+        self.DUMMY_WINDOW.blit(self.assets.options_screen, difficulty_rect)
+
+        if self.game_speed == 150:
+            self.DUMMY_WINDOW.blit(easy_text, easy_text_rect)
+
+        if self.game_speed == 100:
+            self.DUMMY_WINDOW.blit(medium_text, medium_text_rect)
+
+        if self.game_speed == 50:
+            self.DUMMY_WINDOW.blit(hard_text, hard_text_rect)
+
+        if self.game_speed == 10:
+            self.DUMMY_WINDOW.blit(twenty_text, twenty_text_rect)
+
+    def difficulty_selection_settings(self):
+        self.selection_state = True
+
+        while self.selection_state:
+            self.difficulty_selection_screen()
+
+            mx, my = pygame.mouse.get_pos()
+
+            for event in pygame.event.get():
+                click = True if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 else False
+
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    self.DUMMY_WINDOW.blit(self.assets.background, (0, 0))
+                    self.selection_state = False
+
+                self.difficulty_button_click(event, mx, my, click)
+
+                if event.type == pygame.QUIT:
+                    game_quit()
+
+            self.scale_window()
+            self.CLOCK.tick(self.FPS)
+
+    def difficulty_button_click(self, event, mx, my, click, ):
+        easy_rect = pygame.Rect(331, 430, 337, 67)
+        medium_rect = pygame.Rect(331, 505, 337, 67)
+        hard_rect = pygame.Rect(331, 583, 337, 67)
+        twenty_twenty_rect = pygame.Rect(331, 662, 337, 67)
+
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            self.DUMMY_WINDOW.blit(self.assets.background, (0, 0))
+            self.selection_state = False
+
+        if easy_rect.collidepoint((mx, my)) and click:
+            pygame.time.set_timer(self.SCREEN_UPDATE, 0)
+            self.game_speed = 150
+            pygame.time.set_timer(self.SCREEN_UPDATE, self.game_speed)
+            self.selection_state = False
+            self.paused = False
+
+        if medium_rect.collidepoint((mx, my)) and click:
+            pygame.time.set_timer(self.SCREEN_UPDATE, 0)
+            self.game_speed = 100
+            pygame.time.set_timer(self.SCREEN_UPDATE, self.game_speed)
+            self.selection_state = False
+            self.paused = False
+
+        if hard_rect.collidepoint((mx, my)) and click:
+            pygame.time.set_timer(self.SCREEN_UPDATE, 0)
+            self.game_speed = 50
+            pygame.time.set_timer(self.SCREEN_UPDATE, self.game_speed)
+            self.selection_state = False
+            self.paused = False
+
+        if twenty_twenty_rect.collidepoint((mx, my)) and click:
+            pygame.time.set_timer(self.SCREEN_UPDATE, 0)
+            self.game_speed = 10
+            pygame.time.set_timer(self.SCREEN_UPDATE, self.game_speed)
+            self.selection_state = False
+            self.paused = False
+
     def pause_game(self):  # Pauses the game
         self.paused = True
         resume_rect = self.assets.resume_surface.get_rect(center=self.WINDOW.get_rect().center)
+        options_rect = self.assets.button_options.get_rect(topright=self.WINDOW.get_rect().topright)
         while self.paused:
             self.draw_elements()
             self.display_score()
             self.DUMMY_WINDOW.blit(self.assets.resume_surface, resume_rect)
+            self.DUMMY_WINDOW.blit(self.assets.button_options, options_rect)
 
             mx, my = pygame.mouse.get_pos()
 
@@ -335,6 +438,10 @@ class Game:
                 if resume_rect.collidepoint((mx, my)) and click or \
                         event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     self.paused = False
+                    self.selection_state = False
+
+                if options_rect.collidepoint((mx, my)) and click:
+                    self.difficulty_selection_settings()
 
                 if event.type == pygame.QUIT:
                     game_quit()
